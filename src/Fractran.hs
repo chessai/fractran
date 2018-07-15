@@ -85,7 +85,16 @@ get :: FilePath -> IO String
 get !fp = readFile fp >>= pure
 
 eval :: FilePath -> IO ()
-eval !fp = get fp >>= (pure . parse) >>= either print print
+eval !fp = get fp >>= (pure . parse) >>= either print (print . take 10)
+
+parse' :: String -> Either String [Rational]
+parse' [] = Left $ invalid "EMPTY"
+parse' [x] = Left $ invalid "SINGLE CHAR"
+parse' (x:xs) = case readMaybe [x] :: Maybe Int of
+  Nothing -> Left $ invalid "FIRST CHARACTER NOT AN INT"
+  Just i  -> case readMaybe xs :: Maybe [Rational] of
+    Nothing -> Left $ invalid "READ ERROR ON FRACTIONS"
+    Just rs -> Right rs
 
 parse :: String -> Either String [Int]
 parse [] = Left $ invalid "EMPTY"
@@ -130,11 +139,10 @@ check (Fractran !n !pa) = runST run where
   run :: forall s. ST s Check
   run = do
     let !sz = sizeofPrimArray pa 
-    mpa <- newPrimArray sz
     let go :: Int -> ST s Check
         go !ix = if ix < sz
           then do
-            !(Rat x y) <- readPrimArray mpa ix
+            let !(Rat x y) = indexPrimArray pa ix
             if (n `mod` y == 0)
               then
                 let (Rat x' y') = reduce (n * x) y
@@ -145,9 +153,9 @@ check (Fractran !n !pa) = runST run where
 {-# INLINE check #-}
 
 run :: Fractran -> [Int]
-run f = go 0 where
-  go !ix =
-    let c = check f
+run f@(Fractran !n !pa) = go 0 f where
+  go !ix !f' =
+    let c = check f'
     in case c of
       Terminate -> []
-      First r _ -> r : go (ix + 1)
+      First r _ -> r : go (ix + 1) (Fractran r pa)
