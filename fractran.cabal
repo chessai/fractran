@@ -1,0 +1,22 @@
+name:                fractran
+version:             0.1.0.0
+synopsis:            fractran language
+-- description:
+homepage:            https://github.com/chessai/fractran.git
+license:             BSD3
+license-file:        LICENSE
+author:              chessai
+maintainer:          chessai1996@gmail.com
+-- copyright:
+category:            Data
+build-type:          Simple
+extra-source-files:  ChangeLog.md
+cabal-version:       >=1.10
+
+library
+  exposed-modules: Fractran
+  -- other-modules:
+  -- other-extensions:
+  build-depends:       base >=4.7 && <4.13, primitive >= 0.6.4.0, attoparsec, bytestring
+  hs-source-dirs:      src
+  default-language:    Haskell2010
